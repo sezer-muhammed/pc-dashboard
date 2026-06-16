@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { apiGet, ApiError } from "@/lib/api";
+import { getCached } from "@/lib/cache";
 
 export type PollState<T> = {
   data: T | null;
@@ -58,6 +59,13 @@ export function usePoll<T>(
     if (paused) {
       setLoading(false);
       return;
+    }
+    // Stale-while-revalidate: show cached data instantly (e.g. on page switch),
+    // then refetch in the background.
+    const seed = getCached<T>(path);
+    if (seed !== undefined) {
+      setData(seed);
+      setLoading(false);
     }
     void tick();
     return () => {

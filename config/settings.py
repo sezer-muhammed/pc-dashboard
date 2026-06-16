@@ -137,7 +137,9 @@ CORS_ALLOW_HEADERS = ["authorization", "content-type", "accept", "origin", "x-re
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.SessionAuthentication",
-        "rest_framework.authentication.BasicAuthentication",
+        # Caches successful Basic auth in-memory to avoid a remote (Turso) user
+        # lookup on every request — see apps/api/authentication.py.
+        "apps.api.authentication.CachedBasicAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",

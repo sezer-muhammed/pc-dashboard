@@ -47,20 +47,21 @@ export function StoragePanel({ defaultPath }: { defaultPath?: string }) {
     }
   }, []);
 
-  useEffect(() => {
-    void load(defaultPath ?? "", 2);
-  }, [load, defaultPath]);
+  // Manual on purpose: scanning a large tree (e.g. home) can take seconds, so we
+  // don't auto-scan on load. The user picks a path and presses Scan.
 
-  // Re-scan current path when the global "refresh all" fires (skip mount).
+  // Re-scan current path when the global "refresh all" fires, but only if a scan
+  // already happened (don't kick off an expensive scan from a global refresh).
   const { nonce } = useRefresh();
-  const stateRef = useRef({ path, depth });
-  stateRef.current = { path, depth };
+  const stateRef = useRef({ path, depth, scanned: false });
+  stateRef.current = { path, depth, scanned: data !== null };
   const firstNonce = useRef(true);
   useEffect(() => {
     if (firstNonce.current) {
       firstNonce.current = false;
       return;
     }
+    if (!stateRef.current.scanned) return;
     void load(stateRef.current.path, stateRef.current.depth);
   }, [nonce, load]);
 
@@ -114,7 +115,13 @@ export function StoragePanel({ defaultPath }: { defaultPath?: string }) {
       </form>
 
       {rows.length === 0 && !loading ? (
-        <EmptyRow>{error ? "Nothing to show." : "Empty directory."}</EmptyRow>
+        <EmptyRow>
+          {error
+            ? "Nothing to show."
+            : data === null
+              ? "Enter a path (blank = home) and press Scan to inspect disk usage."
+              : "Empty directory."}
+        </EmptyRow>
       ) : (
         <RecordTable
           getRowId={(r: Flat) => r.id}

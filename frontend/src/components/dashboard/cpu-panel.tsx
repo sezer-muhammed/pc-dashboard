@@ -13,7 +13,7 @@ type Core = { i: number; usage: number; freq: number | null };
 export function CpuPanel() {
   const { intervalMs, nonce } = useRefresh();
   const { data, error, loading, refresh } = usePoll<Cpu>(
-    "/system/cpu/?interval=0.5",
+    "/system/cpu/?interval=0.3",
     intervalMs,
     false,
     nonce,

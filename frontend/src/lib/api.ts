@@ -7,6 +7,8 @@
 // API base: explicit override wins; otherwise call the backend on the SAME host
 // the dashboard is served from (so it works over localhost, LAN, or Tailscale),
 // on port 8000. Falls back to 127.0.0.1 during SSR (no window).
+import { setCached } from "@/lib/cache";
+
 const API_PORT = process.env.NEXT_PUBLIC_PC_API_PORT ?? "8000";
 const API_BASE =
   process.env.NEXT_PUBLIC_PC_API ??
@@ -46,7 +48,9 @@ export async function apiGet<T>(path: string, signal?: AbortSignal): Promise<T> 
   if (!res.ok) {
     throw new ApiError(res.status, `${res.status} ${res.statusText}`);
   }
-  return (await res.json()) as T;
+  const data = (await res.json()) as T;
+  setCached(path, data);
+  return data;
 }
 
 // Verify a credential against an auth-required endpoint. Returns true on 200,

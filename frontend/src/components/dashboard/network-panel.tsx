@@ -16,7 +16,7 @@ function ipv4(iface: NetworkInterface): string {
 export function NetworkPanel() {
   const { intervalMs, nonce } = useRefresh();
   const { data, error, loading, refresh } = usePoll<NetworkInterface[]>(
-    "/system/network/?interval=1",
+    "/system/network/?interval=0.5",
     intervalMs,
     false,
     nonce,

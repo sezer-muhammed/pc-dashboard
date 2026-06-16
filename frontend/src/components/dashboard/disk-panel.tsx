@@ -15,7 +15,7 @@ export function DiskPanel() {
   const [showVirtual, setShowVirtual] = useState(false);
   const { intervalMs, nonce } = useRefresh();
   const { data, error, loading, refresh } = usePoll<DiskReport>(
-    "/system/disk/?interval=1",
+    "/system/disk/?interval=0.5",
     intervalMs,
     false,
     nonce,
