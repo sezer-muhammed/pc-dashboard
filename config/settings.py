@@ -128,6 +128,9 @@ CORS_ALLOWED_ORIGINS = env_list(
     "DJANGO_CORS_ORIGINS",
     "http://localhost:3000,http://127.0.0.1:3000",
 )
+# Allow the dashboard from any host on the dashboard port (localhost, LAN,
+# Tailscale, …) — it's served on :3000 wherever the PC is reached.
+CORS_ALLOWED_ORIGIN_REGEXES = [r"^https?://[\w.\-]+:3000$"]
 CORS_ALLOW_HEADERS = ["authorization", "content-type", "accept", "origin", "x-requested-with"]
 
 

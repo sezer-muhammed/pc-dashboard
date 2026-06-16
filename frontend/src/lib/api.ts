@@ -4,7 +4,15 @@
 // backend directly (CORS is enabled server-side). Auth uses HTTP Basic; the
 // base64 credential is kept in localStorage.
 
-const API_BASE = process.env.NEXT_PUBLIC_PC_API ?? "http://127.0.0.1:8000";
+// API base: explicit override wins; otherwise call the backend on the SAME host
+// the dashboard is served from (so it works over localhost, LAN, or Tailscale),
+// on port 8000. Falls back to 127.0.0.1 during SSR (no window).
+const API_PORT = process.env.NEXT_PUBLIC_PC_API_PORT ?? "8000";
+const API_BASE =
+  process.env.NEXT_PUBLIC_PC_API ??
+  (typeof window !== "undefined"
+    ? `${window.location.protocol}//${window.location.hostname}:${API_PORT}`
+    : "http://127.0.0.1:8000");
 const CRED_KEY = "pcdash.cred";
 
 export function getCred(): string | null {
