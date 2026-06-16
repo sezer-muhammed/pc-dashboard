@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Activity, Cpu, LayoutDashboard, type LucideIcon } from "lucide-react";
+import { Activity, Cpu, LayoutDashboard, TerminalSquare, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { siteConfig } from "@/config/site";
 import { SignOutButton } from "@/components/auth/auth-gate";
@@ -11,6 +11,7 @@ import { RefreshProvider, RefreshControl } from "@/components/dashboard/refresh-
 const NAV: Array<{ href: string; label: string; icon: LucideIcon }> = [
   { href: "/", label: "Overview", icon: LayoutDashboard },
   { href: "/diagnostics", label: "System Diagnostics", icon: Activity },
+  { href: "/terminal", label: "Terminal", icon: TerminalSquare },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {

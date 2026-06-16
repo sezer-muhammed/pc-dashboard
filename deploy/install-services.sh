@@ -15,12 +15,13 @@ export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
 mkdir -p "$UNIT_DST"
 cp "$UNIT_SRC/sezer-pc-backend.service" "$UNIT_DST/"
 cp "$UNIT_SRC/sezer-pc-frontend.service" "$UNIT_DST/"
+cp "$UNIT_SRC/sezer-pc-terminal.service" "$UNIT_DST/"
 
 # Keep services running without an active login (survives logout/reboot).
 loginctl enable-linger "$USER" 2>/dev/null || sudo loginctl enable-linger "$USER"
 
 systemctl --user daemon-reload
-systemctl --user enable --now sezer-pc-backend.service sezer-pc-frontend.service
+systemctl --user enable --now sezer-pc-backend.service sezer-pc-frontend.service sezer-pc-terminal.service
 
 echo "Installed. Status:"
 systemctl --user --no-pager status sezer-pc-backend.service sezer-pc-frontend.service | grep -E "Loaded|Active" || true
