@@ -41,12 +41,16 @@ export async function apiGet<T>(path: string, signal?: AbortSignal): Promise<T> 
   return (await res.json()) as T;
 }
 
-// Verify a credential by hitting the API index. Returns true on 200.
+// Verify a credential against an auth-required endpoint. Returns true on 200,
+// false on 401/403 (bad creds). Throws on network/CORS failure so the caller
+// can distinguish "wrong password" from "backend unreachable".
 export async function verifyCred(username: string, password: string): Promise<boolean> {
   const cred = btoa(`${username}:${password}`);
-  const res = await fetch(`${API_BASE}/api/v1/`, {
+  const res = await fetch(`${API_BASE}/api/v1/system/status/`, {
     headers: { Authorization: `Basic ${cred}` },
     cache: "no-store",
   });
-  return res.ok;
+  if (res.status === 401 || res.status === 403) return false;
+  if (!res.ok) throw new Error(`Backend error ${res.status}`);
+  return true;
 }
