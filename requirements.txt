@@ -1,0 +1,8 @@
+Django>=5.1,<6.0
+djangorestframework>=3.15
+# Turso/libSQL: django-libsql supplies the ORM/schema adaptations; the actual
+# connection uses libsql-experimental (current Turso protocol). See db_backends/turso.
+django-libsql>=0.1.3
+libsql-experimental>=0.0.55
+python-dotenv>=1.0
+psutil>=6.0
