@@ -16,7 +16,19 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 NAME_RE = re.compile(r"^[A-Za-z0-9_-]{1,32}$")
-_FORMAT = "#{session_name}|#{session_windows}|#{session_created}|#{?session_attached,1,0}"
+# Unit-separator delimiter so paths/commands with spaces (or even '|') survive.
+_SEP = "\x1f"
+_FORMAT = _SEP.join(
+    [
+        "#{session_name}",
+        "#{session_windows}",
+        "#{session_created}",
+        "#{session_activity}",
+        "#{?session_attached,1,0}",
+        "#{pane_current_command}",
+        "#{pane_current_path}",
+    ]
+)
 
 
 def _tmux(*args: str, timeout: float = 5.0) -> subprocess.CompletedProcess:
@@ -35,19 +47,23 @@ class SessionsView(APIView):
             return Response({"sessions": []})  # "no server running" == none yet
         sessions = []
         for line in res.stdout.strip().splitlines():
-            parts = line.split("|")
-            if len(parts) != 4:
+            parts = line.split(_SEP)
+            if len(parts) != 7:
                 continue
-            name, windows, created, attached = parts
+            name, windows, created, activity, attached, command, path = parts
             sessions.append(
                 {
                     "name": name,
                     "windows": int(windows) if windows.isdigit() else 0,
                     "created": int(created) if created.isdigit() else None,
+                    "activity": int(activity) if activity.isdigit() else None,
                     "attached": attached == "1",
+                    "command": command or None,
+                    "path": path or None,
                 }
             )
-        sessions.sort(key=lambda s: s["name"])
+        # Attached first, then most recently active.
+        sessions.sort(key=lambda s: (not s["attached"], -(s["activity"] or 0)))
         return Response({"sessions": sessions})
 
     def post(self, request: Request, *args, **kwargs) -> Response:
