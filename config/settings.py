@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "rest_framework",
     # Local apps (module-based; add new feature modules here)
     "apps.system",
+    "apps.files",
 ]
 
 MIDDLEWARE = [

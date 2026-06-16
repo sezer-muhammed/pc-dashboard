@@ -22,5 +22,10 @@ def api_root(request: Request, *args, **kwargs) -> Response:
                 "network": reverse("v1:system:network", request=request),
                 "storage": reverse("v1:system:storage", request=request),
             },
+            "files": {
+                "list": reverse("v1:files:list", request=request),
+                "upload": reverse("v1:files:upload", request=request),
+                "download": reverse("v1:files:download", request=request),
+            },
         }
     )

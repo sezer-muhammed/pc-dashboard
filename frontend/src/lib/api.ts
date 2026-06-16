@@ -53,6 +53,37 @@ export async function apiGet<T>(path: string, signal?: AbortSignal): Promise<T> 
   return data;
 }
 
+export async function uploadFiles(targetPath: string, files: File[]): Promise<void> {
+  const cred = getCred();
+  const form = new FormData();
+  form.append("path", targetPath);
+  for (const f of files) form.append("file", f);
+  const res = await fetch(`${API_BASE}/api/v1/files/upload/`, {
+    method: "POST",
+    headers: cred ? { Authorization: `Basic ${cred}` } : {},
+    body: form, // browser sets multipart Content-Type + boundary
+  });
+  if (!res.ok) throw new ApiError(res.status, `${res.status} ${res.statusText}`);
+}
+
+export async function downloadFile(path: string, filename: string): Promise<void> {
+  const cred = getCred();
+  const res = await fetch(
+    `${API_BASE}/api/v1/files/download/?path=${encodeURIComponent(path)}`,
+    { headers: cred ? { Authorization: `Basic ${cred}` } : {} },
+  );
+  if (!res.ok) throw new ApiError(res.status, `${res.status} ${res.statusText}`);
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 // Verify a credential against an auth-required endpoint. Returns true on 200,
 // false on 401/403 (bad creds). Throws on network/CORS failure so the caller
 // can distinguish "wrong password" from "backend unreachable".

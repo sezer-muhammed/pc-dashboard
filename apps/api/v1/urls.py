@@ -11,4 +11,5 @@ from apps.api.v1.views import api_root
 urlpatterns = [
     path("", api_root, name="root"),
     path("system/", include("apps.system.urls")),
+    path("files/", include("apps.files.urls")),
 ]
