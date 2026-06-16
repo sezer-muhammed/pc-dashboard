@@ -34,6 +34,83 @@ def human_bytes(num: float) -> str:
 # ─────────────────────────────────────────────────────────────────────────────
 # Overview / CPU / memory
 # ─────────────────────────────────────────────────────────────────────────────
+def _os_pretty_name() -> str | None:
+    try:
+        with open("/etc/os-release", encoding="utf-8") as fh:
+            for line in fh:
+                if line.startswith("PRETTY_NAME="):
+                    return line.split("=", 1)[1].strip().strip('"')
+    except OSError:
+        pass
+    return None
+
+
+def _cmd_first_line(args: list[str], timeout: float = 6.0) -> str | None:
+    try:
+        out = subprocess.run(args, capture_output=True, text=True, timeout=timeout, check=True).stdout
+    except (subprocess.SubprocessError, OSError):
+        return None
+    line = out.strip().splitlines()[0] if out.strip() else ""
+    return line or None
+
+
+_SOFTWARE_CACHE: dict[str, Any] | None = None
+
+
+def get_software() -> dict[str, Any]:
+    """Versions of key software on the host. Cached — these don't change at
+    runtime, and probing torch is slow, so compute once."""
+    global _SOFTWARE_CACHE
+    if _SOFTWARE_CACHE is not None:
+        return _SOFTWARE_CACHE
+
+    import sys
+
+    info: dict[str, Any] = {
+        "python": platform.python_version(),
+        "os": _os_pretty_name() or platform.system(),
+        "kernel": platform.release(),
+        "architecture": platform.machine(),
+    }
+    try:
+        import django
+
+        info["django"] = django.get_version()
+    except Exception:
+        info["django"] = None
+
+    # PyTorch in a subprocess so torch (and its CUDA libs) never load into the
+    # long-running server process; only static version attrs are read.
+    torch_out = _cmd_first_line(
+        [sys.executable, "-c", "import torch;print(f'{torch.__version__}|{torch.version.cuda}')"],
+        timeout=20.0,
+    )
+    if torch_out and "|" in torch_out:
+        ver, cuda = torch_out.split("|", 1)
+        info["pytorch"] = ver
+        info["cuda"] = None if cuda in ("None", "") else cuda
+    else:
+        info["pytorch"] = None
+        info["cuda"] = None
+
+    info["nvidia_driver"] = _cmd_first_line(
+        ["nvidia-smi", "--query-gpu=driver_version", "--format=csv,noheader,nounits"]
+    )
+    node_bin = next(
+        (p for p in (os.path.expanduser("~/.local/node/bin/node"), os.path.expanduser("~/.local/bin/node")) if os.path.exists(p)),
+        "node",
+    )
+    node = _cmd_first_line([node_bin, "--version"])
+    info["node"] = node.lstrip("v") if node else None
+    git = _cmd_first_line(["git", "--version"])
+    info["git"] = git.replace("git version ", "") if git else None
+    rclone = _cmd_first_line(["rclone", "version"])
+    info["rclone"] = rclone.replace("rclone ", "") if rclone else None
+
+    _SOFTWARE_CACHE = info
+    return info
+
+
 def read_cpu_model() -> str | None:
     """CPU model name (Linux /proc/cpuinfo, falling back to platform)."""
     try:

@@ -7,6 +7,7 @@ from apps.system.views import (
     GpuView,
     MemoryView,
     NetworkView,
+    SoftwareView,
     StorageView,
     SystemStatusView,
     TemperatureView,
@@ -16,6 +17,7 @@ app_name = "system"
 
 urlpatterns = [
     path("status/", SystemStatusView.as_view(), name="status"),
+    path("software/", SoftwareView.as_view(), name="software"),
     path("cpu/", CpuView.as_view(), name="cpu"),
     path("memory/", MemoryView.as_view(), name="memory"),
     path("temperature/", TemperatureView.as_view(), name="temperature"),

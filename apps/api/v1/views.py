@@ -14,6 +14,7 @@ def api_root(request: Request, *args, **kwargs) -> Response:
         {
             "system": {
                 "status": reverse("v1:system:status", request=request),
+                "software": reverse("v1:system:software", request=request),
                 "cpu": reverse("v1:system:cpu", request=request),
                 "memory": reverse("v1:system:memory", request=request),
                 "temperature": reverse("v1:system:temperature", request=request),

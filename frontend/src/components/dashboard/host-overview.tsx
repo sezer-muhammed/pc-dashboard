@@ -6,7 +6,7 @@ import { MetricCard, LiveDot } from "@/components/dashboard/panel";
 import { useRefresh } from "@/components/dashboard/refresh-context";
 import { usePoll } from "@/lib/use-poll";
 import { humanBytes, pct, uptime, usageColor } from "@/lib/format";
-import type { SystemStatus, DiskReport } from "@/types/system";
+import type { SystemStatus, DiskReport, Software } from "@/types/system";
 
 export function HostOverview() {
   const { intervalMs, nonce } = useRefresh();
@@ -17,6 +17,8 @@ export function HostOverview() {
     nonce,
   );
   const { data: disk } = usePoll<DiskReport>("/system/disk/", intervalMs, false, nonce);
+  // Software versions are static — fetch once (interval 0), refetch on refresh-all.
+  const { data: sw } = usePoll<Software>("/system/software/", 0, false, nonce);
   const root = disk?.partitions.find((p) => p.mountpoint === "/") ?? disk?.partitions[0];
 
   return (
@@ -49,10 +51,15 @@ export function HostOverview() {
           </div>
         </div>
         <div className="flex flex-wrap gap-1.5 border-t border-[var(--ds-gray-alpha-300)] pt-3">
-          <Chip k="os" v={data?.system} />
-          <Chip k="kernel" v={data?.release} />
-          <Chip k="arch" v={data?.architecture} />
-          <Chip k="platform" v={data?.platform} />
+          <Chip k="os" v={sw?.os ?? data?.system} />
+          <Chip k="kernel" v={sw?.kernel ?? data?.release} />
+          <Chip k="arch" v={sw?.architecture ?? data?.architecture} />
+          <Chip k="python" v={sw?.python} />
+          <Chip k="pytorch" v={sw?.pytorch} />
+          <Chip k="cuda" v={sw?.cuda} />
+          <Chip k="node" v={sw?.node} />
+          <Chip k="django" v={sw?.django} />
+          {sw?.nvidia_driver ? <Chip k="driver" v={sw.nvidia_driver} /> : null}
         </div>
       </Surface>
 

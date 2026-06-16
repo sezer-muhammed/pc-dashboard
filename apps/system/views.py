@@ -10,6 +10,7 @@ from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.generics import GenericAPIView
 from rest_framework.request import Request
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from apps.system import services
 from apps.system.serializers import (
@@ -91,6 +92,13 @@ class GpuView(GenericAPIView):
 
     def get(self, request: Request, *args, **kwargs) -> Response:
         return Response(self.get_serializer(services.get_gpu()).data)
+
+
+class SoftwareView(APIView):
+    """GET /api/v1/system/software/ — versions of key software (cached)."""
+
+    def get(self, request: Request, *args, **kwargs) -> Response:
+        return Response(services.get_software())
 
 
 class DiskView(GenericAPIView):

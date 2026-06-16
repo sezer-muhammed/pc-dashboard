@@ -22,6 +22,20 @@ export type SystemStatus = {
   swap_percent: number;
 };
 
+export type Software = {
+  python: string | null;
+  os: string | null;
+  kernel: string | null;
+  architecture: string | null;
+  django: string | null;
+  pytorch: string | null;
+  cuda: string | null;
+  nvidia_driver: string | null;
+  node: string | null;
+  git: string | null;
+  rclone: string | null;
+};
+
 export type Cpu = {
   count_logical: number | null;
   count_physical: number | null;
