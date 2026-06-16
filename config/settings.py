@@ -134,12 +134,17 @@ CORS_ALLOWED_ORIGIN_REGEXES = [r"^https?://[\w.\-]+:3000$"]
 CORS_ALLOW_HEADERS = ["authorization", "content-type", "accept", "origin", "x-requested-with"]
 
 
+# API credentials checked in-memory (no DB) by StaticCredentialAuthentication.
+# Defaults to the admin login; override in .env.
+PC_API_USERNAME = env("PC_API_USERNAME", "sezer")
+PC_API_PASSWORD = env("PC_API_PASSWORD")
+
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
+        # Static-credential Basic auth — validated against env, never the DB,
+        # so the read-only system endpoints make zero database queries.
+        "apps.api.authentication.StaticCredentialAuthentication",
         "rest_framework.authentication.SessionAuthentication",
-        # Caches successful Basic auth in-memory to avoid a remote (Turso) user
-        # lookup on every request — see apps/api/authentication.py.
-        "apps.api.authentication.CachedBasicAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",

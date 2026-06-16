@@ -1,49 +1,69 @@
-"""Authentication that caches successful Basic-auth in memory.
+"""Static-credential API authentication — no database involved.
 
-The database is remote (Turso, us-east-1), so a DB user lookup on every request
-adds ~1.5-2s of latency. The system endpoints touch no other tables, so once a
-credential is validated we cache the user for a short TTL and skip the DB on
-subsequent requests — turning repeat calls into pure-psutil (sub-second) work.
-
-Only *successful* auth is cached, keyed by the exact Basic header, so a wrong
-password still hits the normal validation path. Trade-off: a password change or
-account deactivation takes up to TTL seconds to take effect. Fine for a
-single-user personal tool.
+The system endpoints only read the host (psutil) and return; they never need a
+DB row. Validating the password against the user table meant a remote Turso
+(us-east-1) lookup on every request (~1.5-2s). Instead we check the HTTP Basic
+credential against values from the environment (PC_API_USERNAME /
+PC_API_PASSWORD) in constant time. The database is left for the Django admin and
+future feature tables only.
 """
 from __future__ import annotations
 
-import threading
-import time
+import base64
+import binascii
+import secrets
 
-from rest_framework.authentication import BasicAuthentication
-
-_TTL_SECONDS = 60
-_MAX_ENTRIES = 64
-_cache: dict[str, tuple[object, float]] = {}
-_lock = threading.Lock()
+from django.conf import settings
+from rest_framework import authentication, exceptions
 
 
-class CachedBasicAuthentication(BasicAuthentication):
+class StaticAPIUser:
+    """Minimal authenticated principal (not a DB model)."""
+
+    is_authenticated = True
+    is_active = True
+    is_staff = False
+    is_anonymous = False
+    pk = None
+    id = None
+
+    def __init__(self, username: str) -> None:
+        self.username = username
+
+    def __str__(self) -> str:
+        return self.username
+
+
+class StaticCredentialAuthentication(authentication.BaseAuthentication):
+    """HTTP Basic auth validated against env credentials — zero DB access."""
+
+    www_authenticate_realm = "api"
+
     def authenticate(self, request):
         header = request.META.get("HTTP_AUTHORIZATION", "")
         if not header.startswith("Basic "):
-            # Not Basic — defer to the next authenticator (returns None).
-            return super().authenticate(request)
+            return None  # let other authenticators (e.g. session) try
 
-        now = time.monotonic()
-        with _lock:
-            entry = _cache.get(header)
-            if entry is not None and entry[1] > now:
-                return (entry[0], None)
+        try:
+            decoded = base64.b64decode(header[6:].strip()).decode("utf-8")
+        except (binascii.Error, UnicodeDecodeError):
+            raise exceptions.AuthenticationFailed("Invalid Basic header.")
+        username, sep, password = decoded.partition(":")
+        if not sep:
+            raise exceptions.AuthenticationFailed("Invalid Basic credentials.")
 
-        # Cache miss (or expired): validate against the DB. Wrong creds raise
-        # AuthenticationFailed here and are never cached.
-        result = super().authenticate(request)
+        expected_user = settings.PC_API_USERNAME
+        expected_pass = settings.PC_API_PASSWORD
+        if not expected_pass:
+            raise exceptions.AuthenticationFailed("API credentials are not configured.")
 
-        if result is not None:
-            with _lock:
-                _cache[header] = (result[0], now + _TTL_SECONDS)
-                if len(_cache) > _MAX_ENTRIES:
-                    for key in [k for k, v in _cache.items() if v[1] <= now]:
-                        _cache.pop(key, None)
-        return result
+        # Constant-time comparison so a wrong password can't be timed out.
+        ok = secrets.compare_digest(username, expected_user) & secrets.compare_digest(
+            password, expected_pass
+        )
+        if not ok:
+            raise exceptions.AuthenticationFailed("Invalid credentials.")
+        return (StaticAPIUser(username), None)
+
+    def authenticate_header(self, request):
+        return f'Basic realm="{self.www_authenticate_realm}"'
