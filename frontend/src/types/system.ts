@@ -6,6 +6,7 @@ export type SystemStatus = {
   system: string;
   release: string;
   architecture: string;
+  cpu_model: string | null;
   boot_time: string;
   uptime_seconds: number;
   cpu_count_logical: number | null;
@@ -25,6 +26,8 @@ export type Cpu = {
   count_logical: number | null;
   count_physical: number | null;
   percent: number;
+  temperature_c: number | null;
+  per_core_temp_c?: number[];
   per_core_percent: number[];
   frequency_mhz: number | null;
   frequency_min_mhz: number | null;

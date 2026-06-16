@@ -1,6 +1,6 @@
 "use client";
 
-import { Server, Clock, Activity } from "lucide-react";
+import { Server, Clock, Activity, Cpu } from "lucide-react";
 import { Surface } from "@/components/ui/surface";
 import { MetricCard, LiveDot } from "@/components/dashboard/panel";
 import { useRefresh } from "@/components/dashboard/refresh-context";
@@ -21,27 +21,38 @@ export function HostOverview() {
 
   return (
     <div className="flex flex-col gap-4">
-      <Surface tone="raised" className="depth-surface flex flex-wrap items-center justify-between gap-4 p-4">
-        <div className="flex items-center gap-3">
-          <span className="flex h-11 w-11 items-center justify-center rounded-[10px] border border-[var(--ds-gray-alpha-400)] bg-[var(--ds-background-200)]">
-            <Server className="h-5 w-5 text-[var(--ds-gray-1000)]" aria-hidden />
-          </span>
-          <div>
-            <p className="font-mono text-[11px] uppercase tracking-normal text-[var(--ds-gray-700)]">host</p>
-            <p className="text-[20px] font-semibold leading-6 text-[var(--ds-gray-1000)]">
-              {data?.hostname ?? "—"}
-            </p>
-            <p className="text-[12px] text-[var(--ds-gray-900)]">{data?.platform ?? "Loading host…"}</p>
+      <Surface tone="raised" className="depth-surface flex flex-col gap-3 p-4">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <span className="flex h-11 w-11 items-center justify-center rounded-[10px] border border-[var(--ds-gray-alpha-400)] bg-[var(--ds-background-200)]">
+              <Server className="h-5 w-5 text-[var(--ds-gray-1000)]" aria-hidden />
+            </span>
+            <div className="min-w-0">
+              <p className="font-mono text-[11px] uppercase tracking-normal text-[var(--ds-gray-700)]">host</p>
+              <p className="text-[20px] font-semibold leading-6 text-[var(--ds-gray-1000)]">
+                {data?.hostname ?? "—"}
+              </p>
+              <p className="truncate text-[12px] text-[var(--ds-gray-900)]">
+                {data?.cpu_model ?? data?.platform ?? "Loading host…"}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-5">
+            <Meta icon={Cpu} label="cores" value={data ? `${data.cpu_count_physical ?? "?"}c / ${data.cpu_count_logical ?? "?"}t` : "—"} />
+            <Meta icon={Clock} label="uptime" value={data ? uptime(data.uptime_seconds) : "—"} />
+            <Meta
+              icon={Activity}
+              label="load avg"
+              value={data?.load_average ? data.load_average.map((l) => l.toFixed(2)).join("  ") : "—"}
+            />
+            <LiveDot active={Boolean(lastUpdated)} error={Boolean(error)} />
           </div>
         </div>
-        <div className="flex items-center gap-5">
-          <Meta icon={Clock} label="uptime" value={data ? uptime(data.uptime_seconds) : "—"} />
-          <Meta
-            icon={Activity}
-            label="load avg"
-            value={data?.load_average ? data.load_average.map((l) => l.toFixed(2)).join("  ") : "—"}
-          />
-          <LiveDot active={Boolean(lastUpdated)} error={Boolean(error)} />
+        <div className="flex flex-wrap gap-1.5 border-t border-[var(--ds-gray-alpha-300)] pt-3">
+          <Chip k="os" v={data?.system} />
+          <Chip k="kernel" v={data?.release} />
+          <Chip k="arch" v={data?.architecture} />
+          <Chip k="platform" v={data?.platform} />
         </div>
       </Surface>
 
@@ -84,6 +95,15 @@ export function HostOverview() {
         />
       </div>
     </div>
+  );
+}
+
+function Chip({ k, v }: { k: string; v?: string | null }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-[6px] border border-[var(--ds-gray-alpha-400)] bg-[var(--ds-background-200)] px-2 py-1 text-[12px]">
+      <span className="font-mono text-[10px] uppercase tracking-normal text-[var(--ds-gray-600)]">{k}</span>
+      <span className="text-[var(--ds-gray-1000)]">{v ?? "—"}</span>
+    </span>
   );
 }
 

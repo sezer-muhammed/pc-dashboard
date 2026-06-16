@@ -34,6 +34,18 @@ def human_bytes(num: float) -> str:
 # ─────────────────────────────────────────────────────────────────────────────
 # Overview / CPU / memory
 # ─────────────────────────────────────────────────────────────────────────────
+def read_cpu_model() -> str | None:
+    """CPU model name (Linux /proc/cpuinfo, falling back to platform)."""
+    try:
+        with open("/proc/cpuinfo", encoding="utf-8") as fh:
+            for line in fh:
+                if line.startswith("model name"):
+                    return line.split(":", 1)[1].strip()
+    except OSError:
+        pass
+    return platform.processor() or None
+
+
 def get_status() -> dict[str, Any]:
     """High-level snapshot: host identity + CPU / memory / uptime."""
     vmem = psutil.virtual_memory()
@@ -45,6 +57,7 @@ def get_status() -> dict[str, Any]:
         "system": platform.system(),
         "release": platform.release(),
         "architecture": platform.machine(),
+        "cpu_model": read_cpu_model(),
         "boot_time": _utc(boot),
         "uptime_seconds": int(datetime.now(tz=timezone.utc).timestamp() - boot),
         "cpu_count_logical": psutil.cpu_count(logical=True),
@@ -61,14 +74,38 @@ def get_status() -> dict[str, Any]:
     }
 
 
+def get_cpu_temperature() -> tuple[float | None, list[float]]:
+    """(package_temp, per_physical_core_temps) from coretemp/k10temp, if present."""
+    raw = getattr(psutil, "sensors_temperatures", lambda: {})() or {}
+    for chip in ("coretemp", "k10temp", "zenpower"):
+        readings = raw.get(chip)
+        if not readings:
+            continue
+        package: float | None = None
+        cores: list[float] = []
+        for r in readings:
+            label = (r.label or "").lower()
+            if "package" in label or "tctl" in label or "tdie" in label:
+                package = r.current
+            elif label.startswith("core") or "ccd" in label:
+                cores.append(r.current)
+        if package is None:
+            package = max(cores) if cores else readings[0].current
+        return package, cores
+    return None, []
+
+
 def get_cpu(interval: float = 0.3) -> dict[str, Any]:
-    """Overall + per-core utilisation, frequency, times and load average."""
+    """Overall + per-core utilisation, frequency, times, load average and temp."""
     overall = psutil.cpu_percent(interval=interval)
     per_core = psutil.cpu_percent(interval=0.0, percpu=True)
     freq = psutil.cpu_freq()
     per_core_freq = psutil.cpu_freq(percpu=True) or []
     times = psutil.cpu_times_percent(interval=0.0)
+    temp_package, temp_cores = get_cpu_temperature()
     return {
+        "temperature_c": temp_package,
+        "per_core_temp_c": temp_cores,
         "count_logical": psutil.cpu_count(logical=True),
         "count_physical": psutil.cpu_count(logical=False),
         "percent": overall,

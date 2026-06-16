@@ -5,7 +5,7 @@ import { RecordTable } from "@/components/ui/record-table";
 import { ProgressCell } from "@/components/ui/progress-cell";
 import { usePoll } from "@/lib/use-poll";
 import { useRefresh } from "@/components/dashboard/refresh-context";
-import { mhz, pct, usageColor } from "@/lib/format";
+import { mhz, pct, tempColor, usageColor } from "@/lib/format";
 import type { Cpu } from "@/types/system";
 
 type Core = { i: number; usage: number; freq: number | null };
@@ -41,6 +41,11 @@ export function CpuPanel() {
         data ? (
           <span className="hidden items-center gap-3 sm:flex">
             <Stat label="total" value={pct(data.percent)} color={usageColor(data.percent)} />
+            <Stat
+              label="temp"
+              value={data.temperature_c != null ? `${data.temperature_c.toFixed(0)}°C` : "—"}
+              color={tempColor(data.temperature_c)}
+            />
             <Stat label="load" value={data.load_average?.map((l) => l.toFixed(2)).join(" ") ?? "—"} />
           </span>
         ) : null
