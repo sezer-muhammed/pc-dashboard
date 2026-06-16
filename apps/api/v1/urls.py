@@ -12,4 +12,5 @@ urlpatterns = [
     path("", api_root, name="root"),
     path("system/", include("apps.system.urls")),
     path("files/", include("apps.files.urls")),
+    path("terminal/", include("apps.terminal.urls")),
 ]

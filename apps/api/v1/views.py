@@ -28,5 +28,8 @@ def api_root(request: Request, *args, **kwargs) -> Response:
                 "upload": reverse("v1:files:upload", request=request),
                 "download": reverse("v1:files:download", request=request),
             },
+            "terminal": {
+                "sessions": reverse("v1:terminal:sessions", request=request),
+            },
         }
     )

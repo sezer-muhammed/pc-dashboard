@@ -1,5 +1,5 @@
 [Unit]
-Description=Sezer PC Web Terminal (ttyd + tmux, persistent sessions)
+Description=Sezer PC Web Terminal (ttyd + tmux, persistent named sessions)
 After=network-online.target
 
 [Service]
@@ -7,7 +7,7 @@ Type=simple
 WorkingDirectory=%h
 EnvironmentFile=%h/Desktop/sezer-pc-backend/.env
 Environment=PATH=%h/.local/bin:%h/miniconda3/envs/shell/bin:/usr/local/bin:/usr/bin:/bin
-ExecStart=%h/.local/bin/ttyd -p 7681 -i 0.0.0.0 -W -c ${PC_API_USERNAME}:${PC_API_PASSWORD} -t titleFixed=PC-Shell -t fontSize=14 %h/miniconda3/envs/shell/bin/tmux new -A -s pc
+ExecStart=%h/.local/bin/ttyd -p 7681 -i 0.0.0.0 -W -c ${PC_API_USERNAME}:${PC_API_PASSWORD} -t titleFixed=PC-Shell -t fontSize=14 --url-arg %h/.local/bin/pcterm
 Restart=always
 RestartSec=3
 

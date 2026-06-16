@@ -51,7 +51,11 @@ INSTALLED_APPS = [
     # Local apps (module-based; add new feature modules here)
     "apps.system",
     "apps.files",
+    "apps.terminal",
 ]
+
+# tmux binary used to manage the web-terminal sessions (same one ttyd runs).
+PC_TMUX_BIN = env("PC_TMUX_BIN", os.path.expanduser("~/miniconda3/envs/shell/bin/tmux"))
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

@@ -53,6 +53,42 @@ export async function apiGet<T>(path: string, signal?: AbortSignal): Promise<T> 
   return data;
 }
 
+async function errorMessage(res: Response): Promise<string> {
+  try {
+    const j = await res.json();
+    if (typeof j === "string") return j;
+    if (j?.detail) return String(j.detail);
+    const first = j && typeof j === "object" ? Object.values(j)[0] : null;
+    if (Array.isArray(first)) return String(first[0]);
+    return `${res.status} ${res.statusText}`;
+  } catch {
+    return `${res.status} ${res.statusText}`;
+  }
+}
+
+export async function apiPost<T>(path: string, body: unknown): Promise<T> {
+  const cred = getCred();
+  const res = await fetch(`${API_BASE}/api/v1${path}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(cred ? { Authorization: `Basic ${cred}` } : {}),
+    },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new ApiError(res.status, await errorMessage(res));
+  return (res.status === 204 ? undefined : await res.json()) as T;
+}
+
+export async function apiDelete(path: string): Promise<void> {
+  const cred = getCred();
+  const res = await fetch(`${API_BASE}/api/v1${path}`, {
+    method: "DELETE",
+    headers: cred ? { Authorization: `Basic ${cred}` } : {},
+  });
+  if (!res.ok) throw new ApiError(res.status, await errorMessage(res));
+}
+
 export async function uploadFiles(targetPath: string, files: File[]): Promise<void> {
   const cred = getCred();
   const form = new FormData();
