@@ -4,13 +4,20 @@ import { Panel, Mono } from "@/components/dashboard/panel";
 import { RecordTable } from "@/components/ui/record-table";
 import { ProgressCell } from "@/components/ui/progress-cell";
 import { usePoll } from "@/lib/use-poll";
+import { useRefresh } from "@/components/dashboard/refresh-context";
 import { humanBytes, pct, usageColor } from "@/lib/format";
 import type { Memory, MemBlock } from "@/types/system";
 
 type Row = { key: string; kind: string; block: MemBlock };
 
-export function MemoryPanel({ intervalMs = 2000 }: { intervalMs?: number }) {
-  const { data, error, loading, refresh } = usePoll<Memory>("/system/memory/", intervalMs);
+export function MemoryPanel() {
+  const { intervalMs, nonce } = useRefresh();
+  const { data, error, loading, refresh } = usePoll<Memory>(
+    "/system/memory/",
+    intervalMs,
+    false,
+    nonce,
+  );
 
   const rows: Row[] = data
     ? [

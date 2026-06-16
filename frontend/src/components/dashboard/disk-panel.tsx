@@ -7,12 +7,19 @@ import { ProgressCell } from "@/components/ui/progress-cell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { usePoll } from "@/lib/use-poll";
+import { useRefresh } from "@/components/dashboard/refresh-context";
 import { bytesPerSec, humanBytes, pct, usageColor } from "@/lib/format";
 import type { DiskReport, DiskPartition, DiskIO } from "@/types/system";
 
-export function DiskPanel({ intervalMs = 3000 }: { intervalMs?: number }) {
+export function DiskPanel() {
   const [showVirtual, setShowVirtual] = useState(false);
-  const { data, error, loading, refresh } = usePoll<DiskReport>("/system/disk/?interval=1", intervalMs);
+  const { intervalMs, nonce } = useRefresh();
+  const { data, error, loading, refresh } = usePoll<DiskReport>(
+    "/system/disk/?interval=1",
+    intervalMs,
+    false,
+    nonce,
+  );
 
   const parts = (data?.partitions ?? []).filter(
     (p) => showVirtual || (p.fstype !== "squashfs" && !p.mountpoint.startsWith("/snap")),

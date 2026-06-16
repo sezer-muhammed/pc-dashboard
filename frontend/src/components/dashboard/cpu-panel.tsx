@@ -4,13 +4,20 @@ import { Panel, Mono } from "@/components/dashboard/panel";
 import { RecordTable } from "@/components/ui/record-table";
 import { ProgressCell } from "@/components/ui/progress-cell";
 import { usePoll } from "@/lib/use-poll";
+import { useRefresh } from "@/components/dashboard/refresh-context";
 import { mhz, pct, usageColor } from "@/lib/format";
 import type { Cpu } from "@/types/system";
 
 type Core = { i: number; usage: number; freq: number | null };
 
-export function CpuPanel({ intervalMs = 2000 }: { intervalMs?: number }) {
-  const { data, error, loading, refresh } = usePoll<Cpu>("/system/cpu/?interval=0.5", intervalMs);
+export function CpuPanel() {
+  const { intervalMs, nonce } = useRefresh();
+  const { data, error, loading, refresh } = usePoll<Cpu>(
+    "/system/cpu/?interval=0.5",
+    intervalMs,
+    false,
+    nonce,
+  );
 
   const cores: Core[] = (data?.per_core_percent ?? []).map((usage, i) => ({
     i,

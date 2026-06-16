@@ -5,11 +5,18 @@ import { RecordTable } from "@/components/ui/record-table";
 import { ProgressCell } from "@/components/ui/progress-cell";
 import { Badge } from "@/components/ui/badge";
 import { usePoll } from "@/lib/use-poll";
+import { useRefresh } from "@/components/dashboard/refresh-context";
 import { pct, tempColor, usageColor } from "@/lib/format";
 import type { GpuReport, Gpu } from "@/types/system";
 
-export function GpuPanel({ intervalMs = 2000 }: { intervalMs?: number }) {
-  const { data, error, loading, refresh } = usePoll<GpuReport>("/system/gpu/", intervalMs);
+export function GpuPanel() {
+  const { intervalMs, nonce } = useRefresh();
+  const { data, error, loading, refresh } = usePoll<GpuReport>(
+    "/system/gpu/",
+    intervalMs,
+    false,
+    nonce,
+  );
   const gpus = data?.gpus ?? [];
 
   return (

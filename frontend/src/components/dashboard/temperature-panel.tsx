@@ -3,11 +3,18 @@
 import { Panel, Mono, EmptyRow } from "@/components/dashboard/panel";
 import { RecordTable } from "@/components/ui/record-table";
 import { usePoll } from "@/lib/use-poll";
+import { useRefresh } from "@/components/dashboard/refresh-context";
 import { tempColor } from "@/lib/format";
 import type { TemperatureReport, TemperatureReading } from "@/types/system";
 
-export function TemperaturePanel({ intervalMs = 3000 }: { intervalMs?: number }) {
-  const { data, error, loading, refresh } = usePoll<TemperatureReport>("/system/temperature/", intervalMs);
+export function TemperaturePanel() {
+  const { intervalMs, nonce } = useRefresh();
+  const { data, error, loading, refresh } = usePoll<TemperatureReport>(
+    "/system/temperature/",
+    intervalMs,
+    false,
+    nonce,
+  );
   const temps = data?.temperatures ?? [];
   const hottest = temps.reduce<number | null>(
     (max, t) => (t.current != null && (max == null || t.current > max) ? t.current : max),

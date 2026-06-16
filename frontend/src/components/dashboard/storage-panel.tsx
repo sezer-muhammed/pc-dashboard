@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Folder, FileText, CornerDownRight } from "lucide-react";
 import { Panel, Mono, EmptyRow } from "@/components/dashboard/panel";
+import { useRefresh } from "@/components/dashboard/refresh-context";
 import { RecordTable } from "@/components/ui/record-table";
 import { Button } from "@/components/ui/button";
 import { apiGet, ApiError } from "@/lib/api";
@@ -49,6 +50,19 @@ export function StoragePanel({ defaultPath }: { defaultPath?: string }) {
   useEffect(() => {
     void load(defaultPath ?? "", 2);
   }, [load, defaultPath]);
+
+  // Re-scan current path when the global "refresh all" fires (skip mount).
+  const { nonce } = useRefresh();
+  const stateRef = useRef({ path, depth });
+  stateRef.current = { path, depth };
+  const firstNonce = useRef(true);
+  useEffect(() => {
+    if (firstNonce.current) {
+      firstNonce.current = false;
+      return;
+    }
+    void load(stateRef.current.path, stateRef.current.depth);
+  }, [nonce, load]);
 
   const rows = data ? flatten(data.tree, data.tree.size_bytes) : [];
 

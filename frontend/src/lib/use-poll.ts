@@ -12,8 +12,14 @@ export type PollState<T> = {
 };
 
 // Polls an API path on an interval. `intervalMs` is the wall-clock gap between
-// completed requests; set 0 to fetch once. `paused` halts polling.
-export function usePoll<T>(path: string, intervalMs = 3000, paused = false): PollState<T> {
+// completed requests; set 0 to fetch once. `paused` halts polling. Bumping
+// `nonce` forces an immediate refetch (used by the global "refresh all").
+export function usePoll<T>(
+  path: string,
+  intervalMs = 3000,
+  paused = false,
+  nonce = 0,
+): PollState<T> {
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -59,6 +65,16 @@ export function usePoll<T>(path: string, intervalMs = 3000, paused = false): Pol
       if (timer.current) clearTimeout(timer.current);
     };
   }, [tick, paused]);
+
+  // Force an immediate refetch when the global refresh nonce changes (skip mount).
+  const firstNonce = useRef(true);
+  useEffect(() => {
+    if (firstNonce.current) {
+      firstNonce.current = false;
+      return;
+    }
+    refresh();
+  }, [nonce, refresh]);
 
   return { data, error, loading, lastUpdated, refresh };
 }

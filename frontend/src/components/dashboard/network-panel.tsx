@@ -4,6 +4,7 @@ import { Panel, Mono } from "@/components/dashboard/panel";
 import { RecordTable } from "@/components/ui/record-table";
 import { StatusSignal } from "@/components/ui/status-signal";
 import { usePoll } from "@/lib/use-poll";
+import { useRefresh } from "@/components/dashboard/refresh-context";
 import { bytesPerSec, humanBytes } from "@/lib/format";
 import type { NetworkInterface } from "@/types/system";
 
@@ -12,8 +13,14 @@ function ipv4(iface: NetworkInterface): string {
   return a?.address ?? "—";
 }
 
-export function NetworkPanel({ intervalMs = 3000 }: { intervalMs?: number }) {
-  const { data, error, loading, refresh } = usePoll<NetworkInterface[]>("/system/network/?interval=1", intervalMs);
+export function NetworkPanel() {
+  const { intervalMs, nonce } = useRefresh();
+  const { data, error, loading, refresh } = usePoll<NetworkInterface[]>(
+    "/system/network/?interval=1",
+    intervalMs,
+    false,
+    nonce,
+  );
   // up interfaces first, then by recv throughput
   const rows = [...(data ?? [])].sort((a, b) => {
     if (a.is_up !== b.is_up) return a.is_up ? -1 : 1;

@@ -3,12 +3,21 @@
 import { Server, Clock, Activity } from "lucide-react";
 import { Surface } from "@/components/ui/surface";
 import { MetricCard, LiveDot } from "@/components/dashboard/panel";
+import { useRefresh } from "@/components/dashboard/refresh-context";
 import { usePoll } from "@/lib/use-poll";
 import { humanBytes, pct, uptime, usageColor } from "@/lib/format";
-import type { SystemStatus } from "@/types/system";
+import type { SystemStatus, DiskReport } from "@/types/system";
 
 export function HostOverview() {
-  const { data, error, lastUpdated } = usePoll<SystemStatus>("/system/status/", 2000);
+  const { intervalMs, nonce } = useRefresh();
+  const { data, error, lastUpdated } = usePoll<SystemStatus>(
+    "/system/status/",
+    intervalMs,
+    false,
+    nonce,
+  );
+  const { data: disk } = usePoll<DiskReport>("/system/disk/", intervalMs, false, nonce);
+  const root = disk?.partitions.find((p) => p.mountpoint === "/") ?? disk?.partitions[0];
 
   return (
     <div className="flex flex-col gap-4">
@@ -36,7 +45,7 @@ export function HostOverview() {
         </div>
       </Surface>
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
         <MetricCard
           label="CPU"
           value={data ? pct(data.cpu_percent, 0) : "—"}
@@ -59,6 +68,18 @@ export function HostOverview() {
           label="Memory free"
           value={data ? humanBytes(data.memory_available) : "—"}
           sub="available"
+          accent="var(--ds-teal-700)"
+        />
+        <MetricCard
+          label={root ? `Disk ${root.mountpoint}` : "Disk"}
+          value={root ? pct(root.percent, 0) : "—"}
+          sub={root ? `${root.used_human} / ${root.total_human}` : undefined}
+          accent={usageColor(root?.percent)}
+        />
+        <MetricCard
+          label="Disk free"
+          value={root ? root.free_human : "—"}
+          sub={root ? `of ${root.total_human}` : "free"}
           accent="var(--ds-teal-700)"
         />
       </div>
