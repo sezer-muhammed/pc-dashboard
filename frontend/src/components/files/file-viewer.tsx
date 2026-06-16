@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import { Download, Loader2, Save, X } from "lucide-react";
 import { Surface } from "@/components/ui/surface";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,17 @@ import {
 } from "@/lib/api";
 import { humanBytes } from "@/lib/format";
 import type { FileContent, FileEntry } from "@/types/files";
+
+// CodeMirror only loads in the browser (no SSR) and only when a file is opened.
+const CodeEditor = dynamic(
+  () => import("@/components/files/code-editor").then((m) => m.CodeEditor),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="p-4 font-mono text-[12px] text-[var(--ds-gray-700)]">Loading editor…</div>
+    ),
+  },
+);
 
 type Kind = "image" | "video" | "audio" | "text";
 
@@ -43,7 +55,6 @@ export function FileViewer({
   const [saving, setSaving] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
-  const taRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (!entry) return;
@@ -121,21 +132,6 @@ export function FileViewer({
 
   if (!entry) return null;
 
-  function onTextKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
-    if (e.key === "Tab") {
-      e.preventDefault();
-      const ta = e.currentTarget;
-      const s = ta.selectionStart;
-      const en = ta.selectionEnd;
-      const next = draft.slice(0, s) + "  " + draft.slice(en);
-      setDraft(next);
-      setDirty(true);
-      requestAnimationFrame(() => {
-        ta.selectionStart = ta.selectionEnd = s + 2;
-      });
-    }
-  }
-
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
@@ -199,17 +195,16 @@ export function FileViewer({
               <audio src={blobUrl} controls />
             </div>
           ) : editable ? (
-            <textarea
-              ref={taRef}
-              value={draft}
-              onChange={(e) => {
-                setDraft(e.target.value);
-                setDirty(true);
-              }}
-              onKeyDown={onTextKeyDown}
-              spellCheck={false}
-              className="h-full w-full resize-none bg-[var(--ds-background-100)] p-4 font-mono text-[13px] leading-5 text-[var(--ds-gray-1000)] outline-none"
-            />
+            <div className="h-full w-full overflow-hidden">
+              <CodeEditor
+                value={draft}
+                onChange={(v) => {
+                  setDraft(v);
+                  setDirty(true);
+                }}
+                filename={entry.name}
+              />
+            </div>
           ) : content && content.text === null ? (
             <Centered>
               <span className="mb-3 block">
