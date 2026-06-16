@@ -82,6 +82,18 @@ curl -u sezer:'<password>' 'http://127.0.0.1:8000/api/v1/system/storage/?path=/h
 The `storage` tree reports **recursive** folder sizes but only lists children
 down to `depth` levels (largest-first), so the response stays bounded.
 
+## Dashboard (web UI)
+
+A local Next.js dashboard lives in [`frontend/`](frontend/) — an Overview page and
+a System Diagnostics page that render this API's live metrics as Geist-styled
+tables. CORS is enabled server-side (`DJANGO_CORS_ORIGINS`) so the dashboard can
+call the API directly.
+
+```bash
+python manage.py runserver 127.0.0.1:8000   # terminal 1
+cd frontend && npm install && npm run dev    # terminal 2 → http://localhost:3000
+```
+
 ## Configuration
 
 All config comes from environment variables loaded from `.env` (see

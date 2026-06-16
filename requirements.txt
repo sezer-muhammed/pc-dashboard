@@ -1,5 +1,6 @@
 Django>=5.1,<6.0
 djangorestframework>=3.15
+django-cors-headers>=4.9
 # Turso/libSQL: django-libsql supplies the ORM/schema adaptations; the actual
 # connection uses libsql-experimental (current Turso protocol). See db_backends/turso.
 django-libsql>=0.1.3
