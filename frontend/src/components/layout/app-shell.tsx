@@ -7,6 +7,7 @@ import {
   Cpu,
   HardDrive,
   LayoutDashboard,
+  ScrollText,
   TerminalSquare,
   type LucideIcon,
 } from "lucide-react";
@@ -20,6 +21,7 @@ const NAV: Array<{ href: string; label: string; icon: LucideIcon }> = [
   { href: "/diagnostics", label: "System Diagnostics", icon: Activity },
   { href: "/terminal", label: "Terminal", icon: TerminalSquare },
   { href: "/files", label: "Files", icon: HardDrive },
+  { href: "/activity", label: "Activity", icon: ScrollText },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {

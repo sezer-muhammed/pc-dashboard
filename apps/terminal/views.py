@@ -15,6 +15,19 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.audit.recorder import record_event
+
+
+def _actor(request: Request) -> str:
+    return getattr(request.user, "username", "") or "anonymous"
+
+
+def _ip(request: Request) -> str | None:
+    fwd = request.META.get("HTTP_X_FORWARDED_FOR")
+    if fwd:
+        return fwd.split(",")[0].strip()
+    return request.META.get("REMOTE_ADDR")
+
 NAME_RE = re.compile(r"^[A-Za-z0-9_-]{1,32}$")
 # Unit-separator delimiter so paths/commands with spaces (or even '|') survive.
 _SEP = "\x1f"
@@ -70,9 +83,10 @@ class SessionsView(APIView):
         name = (request.data.get("name") or "").strip()
         if not NAME_RE.match(name):
             raise ValidationError({"name": "1–32 chars: letters, digits, _ or -."})
-        res = _tmux("new-session", "-d", "-s", name)
+        res = _tmux("new-session", "-d", "-s", name, settings.PC_TERMINAL_SHELL_CMD.format(name=name))
         if res.returncode != 0:
             raise ValidationError({"name": res.stderr.strip() or "Could not create session."})
+        record_event(_actor(request), "session.create", target=name, ip=_ip(request))
         return Response({"name": name}, status=201)
 
 
@@ -83,4 +97,5 @@ class SessionDetailView(APIView):
         res = _tmux("kill-session", "-t", name)
         if res.returncode != 0:
             raise NotFound("Session not found.")
+        record_event(_actor(request), "session.kill", target=name, ip=_ip(request))
         return Response(status=204)

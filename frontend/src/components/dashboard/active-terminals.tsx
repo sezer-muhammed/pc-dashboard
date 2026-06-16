@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowRight, TerminalSquare } from "lucide-react";
 import { Panel, Mono, EmptyRow } from "@/components/dashboard/panel";
 import { RecordTable } from "@/components/ui/record-table";
@@ -26,6 +27,7 @@ function cmdTone(cmd: string | null): "blue" | "purple" | "amber" | "teal" | "gr
 }
 
 export function ActiveTerminals() {
+  const router = useRouter();
   const { intervalMs, nonce } = useRefresh();
   const { data, error, loading, refresh } = usePoll<TerminalSessions>(
     "/terminal/sessions/",
@@ -61,6 +63,7 @@ export function ActiveTerminals() {
           getRowId={(s: TerminalSession) => s.name}
           rows={sessions}
           minWidth={720}
+          onRowClick={(s) => router.push(`/terminal?focus=${encodeURIComponent(s.name)}`)}
           columns={[
             {
               key: "name",

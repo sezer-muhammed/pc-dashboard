@@ -13,4 +13,5 @@ urlpatterns = [
     path("system/", include("apps.system.urls")),
     path("files/", include("apps.files.urls")),
     path("terminal/", include("apps.terminal.urls")),
+    path("audit/", include("apps.audit.urls")),
 ]

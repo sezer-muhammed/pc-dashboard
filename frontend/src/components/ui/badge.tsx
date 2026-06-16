@@ -19,6 +19,7 @@ export const badgeVariants = cva(
         pink: "border-[color-mix(in_srgb,var(--ds-pink-400)_76%,var(--ds-gray-alpha-400))] bg-[color-mix(in_srgb,var(--ds-pink-100)_72%,var(--ds-background-100))] text-[var(--ds-pink-1000)]",
         purple:
           "border-[color-mix(in_srgb,var(--ds-purple-400)_76%,var(--ds-gray-alpha-400))] bg-[color-mix(in_srgb,var(--ds-purple-100)_72%,var(--ds-background-100))] text-[var(--ds-purple-1000)]",
+        red: "border-[color-mix(in_srgb,var(--ds-red-400)_76%,var(--ds-gray-alpha-400))] bg-[color-mix(in_srgb,var(--ds-red-100)_72%,var(--ds-background-100))] text-[var(--ds-red-1000)]",
         teal: "border-[color-mix(in_srgb,var(--ds-teal-400)_76%,var(--ds-gray-alpha-400))] bg-[color-mix(in_srgb,var(--ds-teal-100)_72%,var(--ds-background-100))] text-[var(--ds-teal-1000)]",
       },
     },

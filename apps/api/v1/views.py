@@ -31,5 +31,8 @@ def api_root(request: Request, *args, **kwargs) -> Response:
             "terminal": {
                 "sessions": reverse("v1:terminal:sessions", request=request),
             },
+            "audit": {
+                "events": reverse("v1:audit:events", request=request),
+            },
         }
     )

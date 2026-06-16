@@ -39,6 +39,15 @@ export default function TerminalPage() {
     } catch {
       /* ignore */
     }
+    // Jump-to-session: ?focus=<name> loads that session into pane 1.
+    const focus = new URLSearchParams(window.location.search).get("focus");
+    if (focus) {
+      setPanes((prev) => {
+        const a = prev.length ? [...prev] : ["pc"];
+        a[0] = focus;
+        return a;
+      });
+    }
   }, []);
 
   useEffect(() => {

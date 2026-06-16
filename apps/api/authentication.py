@@ -52,15 +52,14 @@ class StaticCredentialAuthentication(authentication.BaseAuthentication):
         if not sep:
             raise exceptions.AuthenticationFailed("Invalid Basic credentials.")
 
-        expected_user = settings.PC_API_USERNAME
-        expected_pass = settings.PC_API_PASSWORD
-        if not expected_pass:
+        users = settings.PC_API_USERS
+        if not users:
             raise exceptions.AuthenticationFailed("API credentials are not configured.")
 
-        # Constant-time comparison so a wrong password can't be timed out.
-        ok = secrets.compare_digest(username, expected_user) & secrets.compare_digest(
-            password, expected_pass
-        )
+        # Constant-time comparison against the matching user's password (a dummy
+        # compare for unknown users so timing doesn't reveal valid usernames).
+        expected = users.get(username, "")
+        ok = secrets.compare_digest(password, expected) and username in users
         if not ok:
             raise exceptions.AuthenticationFailed("Invalid credentials.")
         return (StaticAPIUser(username), None)

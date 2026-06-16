@@ -52,10 +52,17 @@ INSTALLED_APPS = [
     "apps.system",
     "apps.files",
     "apps.terminal",
+    "apps.audit",
 ]
 
 # tmux binary used to manage the web-terminal sessions (same one ttyd runs).
 PC_TMUX_BIN = env("PC_TMUX_BIN", os.path.expanduser("~/miniconda3/envs/shell/bin/tmux"))
+# Shell command tmux runs for a new session — launches bash with the audit
+# rcfile so commands are logged. {name} is the (sanitized) session name.
+PC_TERMINAL_SHELL_CMD = env(
+    "PC_TERMINAL_SHELL_CMD",
+    "PCTERM_SESSION={name} exec bash --rcfile " + os.path.expanduser("~/.pcterm/bashrc"),
+)
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -143,6 +150,24 @@ CORS_ALLOW_HEADERS = ["authorization", "content-type", "accept", "origin", "x-re
 # Defaults to the admin login; override in .env.
 PC_API_USERNAME = env("PC_API_USERNAME", "sezer")
 PC_API_PASSWORD = env("PC_API_PASSWORD")
+
+
+def _build_api_users() -> dict[str, str]:
+    """Allowed dashboard logins. PC_API_USERS="user:pass,user:pass" (so the audit
+    log can attribute actions to a person); falls back to the single
+    PC_API_USERNAME/PC_API_PASSWORD."""
+    users: dict[str, str] = {}
+    for pair in env("PC_API_USERS", "").split(","):
+        if ":" in pair:
+            u, p = pair.split(":", 1)
+            if u.strip() and p.strip():
+                users[u.strip()] = p.strip()
+    if not users and PC_API_PASSWORD:
+        users[PC_API_USERNAME] = PC_API_PASSWORD
+    return users
+
+
+PC_API_USERS = _build_api_users()
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
