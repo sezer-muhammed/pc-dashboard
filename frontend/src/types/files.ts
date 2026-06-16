@@ -11,3 +11,12 @@ export type DirListing = {
   parent: string | null;
   entries: FileEntry[];
 };
+
+export type FileContent = {
+  path: string;
+  name: string;
+  size: number;
+  mime: string | null;
+  text: string | null;
+  reason?: "binary" | "too_large";
+};

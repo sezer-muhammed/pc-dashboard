@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowUp,
   Download,
+  Eye,
   FileText,
   Folder,
   HardDrive,
@@ -14,6 +15,7 @@ import { Surface } from "@/components/ui/surface";
 import { Button } from "@/components/ui/button";
 import { RecordTable } from "@/components/ui/record-table";
 import { Mono, EmptyRow } from "@/components/dashboard/panel";
+import { FileViewer } from "@/components/files/file-viewer";
 import { ApiError, apiGet, downloadFile, uploadFiles } from "@/lib/api";
 import { humanBytes } from "@/lib/format";
 import { cn } from "@/lib/cn";
@@ -25,6 +27,7 @@ export default function FilesPage() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
+  const [viewer, setViewer] = useState<FileEntry | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const load = useCallback(async (p: string | null) => {
@@ -184,7 +187,7 @@ export default function FilesPage() {
             getRowId={(e: FileEntry) => e.path}
             rows={listing?.entries ?? []}
             minWidth={620}
-            onRowClick={(e) => (e.is_dir ? load(e.path) : undefined)}
+            onRowClick={(e) => (e.is_dir ? load(e.path) : setViewer(e))}
             columns={[
               {
                 key: "name",
@@ -220,16 +223,29 @@ export default function FilesPage() {
                 align: "right",
                 render: (e) =>
                   e.is_dir ? null : (
-                    <button
-                      type="button"
-                      onClick={(ev) => {
-                        ev.stopPropagation();
-                        void onDownload(e);
-                      }}
-                      className="inline-flex h-7 items-center gap-1.5 rounded-[6px] border border-[var(--ds-gray-alpha-400)] bg-[var(--ds-background-100)] px-2 text-[12px] font-medium text-[var(--ds-gray-1000)] transition hover:bg-[var(--ds-gray-100)]"
-                    >
-                      <Download className="h-3.5 w-3.5" aria-hidden /> Download
-                    </button>
+                    <span className="inline-flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={(ev) => {
+                          ev.stopPropagation();
+                          setViewer(e);
+                        }}
+                        className="inline-flex h-7 items-center gap-1.5 rounded-[6px] border border-[var(--ds-gray-alpha-400)] bg-[var(--ds-background-100)] px-2 text-[12px] font-medium text-[var(--ds-gray-1000)] transition hover:bg-[var(--ds-gray-100)]"
+                      >
+                        <Eye className="h-3.5 w-3.5" aria-hidden /> Open
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(ev) => {
+                          ev.stopPropagation();
+                          void onDownload(e);
+                        }}
+                        aria-label="Download"
+                        className="inline-flex h-7 w-7 items-center justify-center rounded-[6px] border border-[var(--ds-gray-alpha-400)] bg-[var(--ds-background-100)] text-[var(--ds-gray-900)] transition hover:bg-[var(--ds-gray-100)]"
+                      >
+                        <Download className="h-3.5 w-3.5" aria-hidden />
+                      </button>
+                    </span>
                   ),
               },
             ]}
@@ -237,8 +253,14 @@ export default function FilesPage() {
         )}
       </Surface>
       <p className="text-[12px] text-[var(--ds-gray-700)]">
-        Tip: click a folder to open it, drag files onto the panel to upload to the current folder.
+        Tip: click a folder to open it, click a file to view/edit it, drag files onto the panel to upload.
       </p>
+
+      <FileViewer
+        entry={viewer}
+        onClose={() => setViewer(null)}
+        onSaved={() => void load(listing?.path ?? null)}
+      />
     </div>
   );
 }

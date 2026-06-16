@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { RecordTable } from "@/components/ui/record-table";
 import { Mono, EmptyRow } from "@/components/dashboard/panel";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { usePoll } from "@/lib/use-poll";
 import { ApiError, apiDelete, apiPost } from "@/lib/api";
 import { cn } from "@/lib/cn";
@@ -24,6 +25,7 @@ export default function TerminalPage() {
   const [panes, setPanes] = useState<string[]>(["pc"]);
   const [newName, setNewName] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [killTarget, setKillTarget] = useState<string | null>(null);
 
   const { data, refresh, loading } = usePoll<Sessions>("/terminal/sessions/", 5000);
   const sessions = useMemo(() => data?.sessions ?? [], [data]);
@@ -200,7 +202,7 @@ export default function TerminalPage() {
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      void killSession(s.name);
+                      setKillTarget(s.name);
                     }}
                     className="inline-flex h-7 items-center gap-1.5 rounded-[6px] border border-[var(--ds-gray-alpha-400)] bg-[var(--ds-background-100)] px-2 text-[12px] font-medium text-[var(--ds-red-900)] transition hover:bg-[var(--ds-gray-100)]"
                   >
@@ -267,6 +269,24 @@ export default function TerminalPage() {
         <kbd className="mx-1 rounded-[4px] border border-[var(--ds-gray-alpha-400)] bg-[var(--ds-background-200)] px-1 font-mono text-[11px]">Ctrl-b c</kbd>
         adds a window.
       </p>
+
+      <ConfirmDialog
+        open={killTarget !== null}
+        danger
+        title="Kill terminal session"
+        message={
+          <>
+            Kill session <span className="font-mono font-medium text-[var(--ds-gray-1000)]">{killTarget}</span>?
+            Anything running in it will be terminated.
+          </>
+        }
+        confirmLabel="Kill session"
+        onConfirm={() => {
+          if (killTarget) void killSession(killTarget);
+          setKillTarget(null);
+        }}
+        onCancel={() => setKillTarget(null)}
+      />
     </div>
   );
 }

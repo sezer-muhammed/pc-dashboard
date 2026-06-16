@@ -1,14 +1,17 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, TerminalSquare } from "lucide-react";
+import { ArrowRight, TerminalSquare, Trash2 } from "lucide-react";
 import { Panel, Mono, EmptyRow } from "@/components/dashboard/panel";
 import { RecordTable } from "@/components/ui/record-table";
 import { Badge } from "@/components/ui/badge";
 import { StatusSignal } from "@/components/ui/status-signal";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useRefresh } from "@/components/dashboard/refresh-context";
 import { usePoll } from "@/lib/use-poll";
+import { apiDelete } from "@/lib/api";
 import { ago } from "@/lib/format";
 import type { TerminalSessions, TerminalSession } from "@/types/terminal";
 
@@ -36,6 +39,18 @@ export function ActiveTerminals() {
     nonce,
   );
   const sessions = data?.sessions ?? [];
+  const [killTarget, setKillTarget] = useState<string | null>(null);
+
+  async function doKill(name: string) {
+    try {
+      await apiDelete(`/terminal/sessions/${encodeURIComponent(name)}/`);
+    } catch {
+      /* ignore */
+    } finally {
+      setKillTarget(null);
+      refresh();
+    }
+  }
 
   return (
     <Panel
@@ -108,9 +123,40 @@ export function ActiveTerminals() {
               align: "right",
               render: (s) => <Mono>{ago(s.activity)}</Mono>,
             },
+            {
+              key: "kill",
+              header: "",
+              align: "right",
+              render: (s) => (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setKillTarget(s.name);
+                  }}
+                  className="inline-flex h-7 items-center gap-1.5 rounded-[6px] border border-[var(--ds-gray-alpha-400)] bg-[var(--ds-background-100)] px-2 text-[12px] font-medium text-[var(--ds-red-900)] transition hover:bg-[var(--ds-gray-100)]"
+                >
+                  <Trash2 className="h-3.5 w-3.5" aria-hidden /> Kill
+                </button>
+              ),
+            },
           ]}
         />
       )}
+      <ConfirmDialog
+        open={killTarget !== null}
+        danger
+        title="Kill terminal session"
+        message={
+          <>
+            Kill session <span className="font-mono font-medium text-[var(--ds-gray-1000)]">{killTarget}</span>?
+            Anything running in it will be terminated.
+          </>
+        }
+        confirmLabel="Kill session"
+        onConfirm={() => killTarget && doKill(killTarget)}
+        onCancel={() => setKillTarget(null)}
+      />
     </Panel>
   );
 }

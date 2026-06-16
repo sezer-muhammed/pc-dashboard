@@ -102,6 +102,24 @@ export async function uploadFiles(targetPath: string, files: File[]): Promise<vo
   if (!res.ok) throw new ApiError(res.status, `${res.status} ${res.statusText}`);
 }
 
+export async function fetchFileContent<T>(path: string): Promise<T> {
+  return apiGet<T>(`/files/content/?path=${encodeURIComponent(path)}`);
+}
+
+export async function fetchRawObjectUrl(path: string): Promise<string> {
+  const cred = getCred();
+  const res = await fetch(
+    `${API_BASE}/api/v1/files/raw/?path=${encodeURIComponent(path)}`,
+    { headers: cred ? { Authorization: `Basic ${cred}` } : {} },
+  );
+  if (!res.ok) throw new ApiError(res.status, `${res.status} ${res.statusText}`);
+  return URL.createObjectURL(await res.blob());
+}
+
+export async function saveFile(path: string, content: string): Promise<void> {
+  await apiPost("/files/save/", { path, content });
+}
+
 export async function downloadFile(path: string, filename: string): Promise<void> {
   const cred = getCred();
   const res = await fetch(
