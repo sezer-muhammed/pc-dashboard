@@ -56,18 +56,31 @@ python manage.py runserver
 All endpoints are namespaced under `/api/v1/` and require authentication
 (session or HTTP Basic). With the browsable API you can log in at `/api-auth/login/`.
 
+All system endpoints are real-time and **not persisted** — every call reflects
+the live host state.
+
 | Method | Path | Description |
 | --- | --- | --- |
 | GET | `/api/v1/` | Module index |
-| GET | `/api/v1/system/status/` | Host identity, CPU, memory, uptime |
-| GET | `/api/v1/system/disk/` | Per-partition usage + disk IO |
-| GET | `/api/v1/system/network/` | Per-interface (ethernet) usage |
+| GET | `/api/v1/system/status/` | Host identity, CPU, memory, uptime (overview) |
+| GET | `/api/v1/system/cpu/` | Overall + per-core %, frequency, times. `?interval=` (0–2s, default 0.3) |
+| GET | `/api/v1/system/memory/` | Virtual + swap memory |
+| GET | `/api/v1/system/temperature/` | Sensor temperatures + fan speeds |
+| GET | `/api/v1/system/gpu/` | NVIDIA GPU(s) via `nvidia-smi` (`available:false` if absent) |
+| GET | `/api/v1/system/disk/` | Partitions + per-disk IO. `?interval=` (0–5s) adds throughput & utilisation % |
+| GET | `/api/v1/system/network/` | Per-interface (ethernet) usage. `?interval=` (0–5s) adds bytes/sec |
+| GET | `/api/v1/system/storage/` | Nested directory-size tree. `?path=<dir>` (default home), `?depth=` (1–4, default 2) |
 
-Example:
+Examples:
 
 ```bash
-curl -u sezer:'<password>' http://127.0.0.1:8000/api/v1/system/disk/
+curl -u sezer:'<password>' http://127.0.0.1:8000/api/v1/system/cpu/?interval=0.5
+curl -u sezer:'<password>' http://127.0.0.1:8000/api/v1/system/disk/?interval=1
+curl -u sezer:'<password>' 'http://127.0.0.1:8000/api/v1/system/storage/?path=/home/sezer&depth=2'
 ```
+
+The `storage` tree reports **recursive** folder sizes but only lists children
+down to `depth` levels (largest-first), so the response stays bounded.
 
 ## Configuration
 
