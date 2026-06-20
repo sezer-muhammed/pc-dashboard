@@ -1,4 +1,4 @@
-"""WSGI config for the sezer-pc-backend project."""
+"""WSGI config for the pc-dashboard project."""
 import os
 
 from django.core.wsgi import get_wsgi_application

@@ -1,4 +1,4 @@
-// Response shapes from sezer-pc-backend /api/v1/system/*
+// Response shapes from pc-dashboard /api/v1/system/*
 
 export type SystemStatus = {
   hostname: string;
@@ -57,6 +57,13 @@ export type MemBlock = {
   free: number;
   percent: number;
   available?: number;
+  cached?: number | null;
+  buffers?: number | null;
+  shared?: number | null;
+  active?: number | null;
+  inactive?: number | null;
+  sin?: number | null;
+  sout?: number | null;
   total_human?: string;
   used_human?: string;
 };

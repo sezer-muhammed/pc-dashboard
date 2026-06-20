@@ -1,6 +1,6 @@
 "use client";
 
-// Lightweight API client for sezer-pc-backend. The dashboard calls the Django
+// Lightweight API client for pc-dashboard. The dashboard calls the Django
 // backend directly (CORS is enabled server-side). Auth uses HTTP Basic; the
 // base64 credential is kept in localStorage.
 

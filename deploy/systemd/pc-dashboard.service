@@ -1,10 +1,10 @@
 [Unit]
-Description=Sezer PC Backend (Django runserver, auto-reload on code change)
+Description=PC Backend (Django runserver, auto-reload on code change)
 After=network-online.target
 
 [Service]
 Type=simple
-WorkingDirectory=%h/Desktop/sezer-pc-backend
+WorkingDirectory=%h/Desktop/pc-dashboard
 ExecStart=%h/miniconda3/bin/python manage.py runserver 0.0.0.0:8000
 Environment=PYTHONUNBUFFERED=1
 Restart=always

@@ -1,0 +1,47 @@
+# Neko = the "Display" virtual monitor: a GPU-rendered desktop streamed over
+# WebRTC, embedded by the dashboard's /display tab.
+#
+# Bring up:  docker compose -f deploy/display/docker-compose.yml up -d
+# `restart: unless-stopped` => the Docker daemon restarts it on boot.
+
+services:
+  neko:
+    build:
+      context: ./nvidia-xfce
+    image: pc-dashboard-display:nvidia-xfce
+    container_name: pc-dashboard-display
+    restart: unless-stopped
+    shm_size: "2gb"
+    # Host networking: Neko binds directly to the machine's interfaces, so WebRTC
+    # has no Docker NAT to traverse. The browser connects over loopback/LAN
+    # directly. (Replaces the old port mappings — incompatible with host mode.)
+    network_mode: host
+    environment:
+      NEKO_DESKTOP_SCREEN: ${SCREEN:-1920x1080@60}
+
+      # Must match the dashboard client default (NEXT_PUBLIC_PC_DISPLAY_PASSWORD).
+      NEKO_MEMBER_MULTIUSER_USER_PASSWORD: ${NEKO_USER_PASSWORD:-neko}
+      NEKO_MEMBER_MULTIUSER_ADMIN_PASSWORD: ${NEKO_ADMIN_PASSWORD:-admin}
+
+      NEKO_WEBRTC_EPR: 52000-52100
+      # Full ICE (not lite): gather ALL local interfaces incl. 127.0.0.1 so the
+      # browser on this machine connects over loopback. Disable public-IP lookup
+      # so it doesn't advertise an unreachable WAN address.
+      NEKO_WEBRTC_ICELITE: 0
+      NEKO_WEBRTC_NAT1TO1: ${NEKO_NAT1TO1:-}
+      NEKO_WEBRTC_IPRETRIEVAL_URL: ""
+      NEKO_WEBRTC_ESTIMATOR_INITIAL_BITRATE: ${VIDEO_BITRATE:-8000}
+
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: all
+
+      # NOTE: using the image's BUILT-IN default capture/encode pipeline (which is
+      # tested for nvidia-firefox and uses NVENC h264). A custom
+      # NEKO_CAPTURE_VIDEO_PIPELINE override produced a black screen, so it's
+      # removed. Re-add a tuned pipeline only after the default is confirmed working.
+
+    # Use the nvidia runtime so NVIDIA_DRIVER_CAPABILITIES=all is honored and ALL
+    # driver libs are injected — including graphics/GL (libGLX_nvidia), which the
+    # desktop needs to render. (deploy.resources capabilities only gave us video,
+    # which encodes fine but leaves Chromium with no GL → black screen.)
+    runtime: nvidia

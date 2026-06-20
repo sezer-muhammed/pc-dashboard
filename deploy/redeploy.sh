@@ -19,13 +19,13 @@ cd "$REPO/frontend"
 npm run build
 
 echo "[2/2] Restarting frontend service…"
-systemctl --user restart sezer-pc-frontend.service
+systemctl --user restart pc-dashboard-frontend.service
 
 if [ "${1:-}" = "--backend" ]; then
-  systemctl --user restart sezer-pc-backend.service
+  systemctl --user restart pc-dashboard.service
   echo "Restarted backend too."
 fi
 
-systemctl --user --no-pager --property=ActiveState,SubState show sezer-pc-frontend.service | tr '\n' ' '
+systemctl --user --no-pager --property=ActiveState,SubState show pc-dashboard-frontend.service | tr '\n' ' '
 echo
 echo "Done → dashboard on :3000"

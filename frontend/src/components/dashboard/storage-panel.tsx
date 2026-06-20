@@ -211,7 +211,7 @@ export function StoragePanel({ defaultPath }: { defaultPath?: string }) {
         <input
           className="h-8 min-w-0 flex-1 rounded-[7px] border border-[var(--ds-gray-alpha-400)] bg-[var(--ds-background-100)] px-2.5 font-mono text-[12px] text-[var(--ds-gray-1000)] outline-none focus-visible:shadow-[var(--ds-focus-ring)]"
           value={input}
-          placeholder="/home/sezer (blank = home)"
+          placeholder="/home/user (blank = home)"
           onChange={(e) => setInput(e.target.value)}
           spellCheck={false}
         />

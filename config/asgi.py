@@ -1,4 +1,4 @@
-"""ASGI config for the sezer-pc-backend project."""
+"""ASGI config for the pc-dashboard project."""
 import os
 
 from django.core.asgi import get_asgi_application

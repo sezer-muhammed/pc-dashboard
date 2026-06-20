@@ -1,10 +1,10 @@
 [Unit]
-Description=Sezer PC Dashboard (Next.js production build, served optimised)
-After=network-online.target sezer-pc-backend.service
+Description=PC Dashboard (Next.js production build, served optimised)
+After=network-online.target pc-dashboard.service
 
 [Service]
 Type=simple
-WorkingDirectory=%h/Desktop/sezer-pc-backend/frontend
+WorkingDirectory=%h/Desktop/pc-dashboard/frontend
 ExecStart=%h/.local/node/bin/node node_modules/next/dist/bin/next start -H 0.0.0.0 -p 3000
 Environment=PATH=%h/.local/node/bin:/usr/local/bin:/usr/bin:/bin
 Environment=NODE_ENV=production

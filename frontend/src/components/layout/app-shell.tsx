@@ -7,6 +7,7 @@ import {
   Cpu,
   HardDrive,
   LayoutDashboard,
+  Monitor,
   ScrollText,
   TerminalSquare,
   type LucideIcon,
@@ -20,6 +21,7 @@ const NAV: Array<{ href: string; label: string; icon: LucideIcon }> = [
   { href: "/", label: "Overview", icon: LayoutDashboard },
   { href: "/diagnostics", label: "System Diagnostics", icon: Activity },
   { href: "/terminal", label: "Terminal", icon: TerminalSquare },
+  { href: "/display", label: "Display", icon: Monitor },
   { href: "/files", label: "Files", icon: HardDrive },
   { href: "/activity", label: "Activity", icon: ScrollText },
 ];

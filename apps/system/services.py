@@ -204,6 +204,12 @@ def get_cpu(interval: float = 0.3) -> dict[str, Any]:
 def get_memory() -> dict[str, Any]:
     vmem = psutil.virtual_memory()
     swap = psutil.swap_memory()
+
+    def opt(obj, attr):
+        # Several fields are platform dependent (e.g. cached/buffers are Linux-only).
+        value = getattr(obj, attr, None)
+        return int(value) if value is not None else None
+
     return {
         "virtual": {
             "total": vmem.total,
@@ -211,6 +217,11 @@ def get_memory() -> dict[str, Any]:
             "used": vmem.used,
             "free": vmem.free,
             "percent": vmem.percent,
+            "cached": opt(vmem, "cached"),
+            "buffers": opt(vmem, "buffers"),
+            "shared": opt(vmem, "shared"),
+            "active": opt(vmem, "active"),
+            "inactive": opt(vmem, "inactive"),
             "total_human": human_bytes(vmem.total),
             "used_human": human_bytes(vmem.used),
         },
@@ -219,6 +230,8 @@ def get_memory() -> dict[str, Any]:
             "used": swap.used,
             "free": swap.free,
             "percent": swap.percent,
+            "sin": opt(swap, "sin"),
+            "sout": opt(swap, "sout"),
         },
     }
 

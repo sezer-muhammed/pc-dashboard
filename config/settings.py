@@ -1,5 +1,5 @@
 """
-Django settings for the sezer-pc-backend project.
+Django settings for the pc-dashboard project.
 
 Configuration is read from environment variables (loaded from a local .env file
 via python-dotenv). Never commit real secrets — see .env.example.
@@ -148,7 +148,7 @@ CORS_ALLOW_HEADERS = ["authorization", "content-type", "accept", "origin", "x-re
 
 # API credentials checked in-memory (no DB) by StaticCredentialAuthentication.
 # Defaults to the admin login; override in .env.
-PC_API_USERNAME = env("PC_API_USERNAME", "sezer")
+PC_API_USERNAME = env("PC_API_USERNAME", "admin")
 PC_API_PASSWORD = env("PC_API_PASSWORD")
 
 

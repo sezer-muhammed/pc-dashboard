@@ -1,5 +1,5 @@
 export const siteConfig = {
-  name: "Sezer PC Console",
+  name: "PC Console",
   shortName: "PC",
   tagline: "Local host monitoring & control",
 } as const;

@@ -93,6 +93,13 @@ class MemBlockSerializer(serializers.Serializer):
     free = serializers.IntegerField()
     percent = serializers.FloatField()
     available = serializers.IntegerField(required=False)
+    cached = serializers.IntegerField(required=False, allow_null=True)
+    buffers = serializers.IntegerField(required=False, allow_null=True)
+    shared = serializers.IntegerField(required=False, allow_null=True)
+    active = serializers.IntegerField(required=False, allow_null=True)
+    inactive = serializers.IntegerField(required=False, allow_null=True)
+    sin = serializers.IntegerField(required=False, allow_null=True)
+    sout = serializers.IntegerField(required=False, allow_null=True)
     total_human = serializers.CharField(required=False)
     used_human = serializers.CharField(required=False)
 

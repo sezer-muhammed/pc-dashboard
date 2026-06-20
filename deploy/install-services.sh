@@ -13,25 +13,25 @@ UNIT_DST="$HOME/.config/systemd/user"
 export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
 
 mkdir -p "$UNIT_DST"
-cp "$UNIT_SRC/sezer-pc-backend.service" "$UNIT_DST/"
-cp "$UNIT_SRC/sezer-pc-frontend.service" "$UNIT_DST/"
-cp "$UNIT_SRC/sezer-pc-terminal.service" "$UNIT_DST/"
+cp "$UNIT_SRC/pc-dashboard.service" "$UNIT_DST/"
+cp "$UNIT_SRC/pc-dashboard-frontend.service" "$UNIT_DST/"
+cp "$UNIT_SRC/pc-dashboard-terminal.service" "$UNIT_DST/"
 
 # Keep services running without an active login (survives logout/reboot).
 loginctl enable-linger "$USER" 2>/dev/null || sudo loginctl enable-linger "$USER"
 
 systemctl --user daemon-reload
-systemctl --user enable --now sezer-pc-backend.service sezer-pc-frontend.service sezer-pc-terminal.service
+systemctl --user enable --now pc-dashboard.service pc-dashboard-frontend.service pc-dashboard-terminal.service
 
 echo "Installed. Status:"
-systemctl --user --no-pager status sezer-pc-backend.service sezer-pc-frontend.service | grep -E "Loaded|Active" || true
+systemctl --user --no-pager status pc-dashboard.service pc-dashboard-frontend.service | grep -E "Loaded|Active" || true
 cat <<'EOF'
 
 Backend : http://127.0.0.1:8000
 Dashboard: http://127.0.0.1:3000
 
 Manage:
-  systemctl --user status  sezer-pc-frontend.service
-  systemctl --user restart sezer-pc-backend.service
-  journalctl --user -u sezer-pc-backend.service -f
+  systemctl --user status  pc-dashboard-frontend.service
+  systemctl --user restart pc-dashboard.service
+  journalctl --user -u pc-dashboard.service -f
 EOF
