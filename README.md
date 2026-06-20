@@ -11,6 +11,11 @@ on your own machine and be reached over LAN or a private mesh (e.g. Tailscale) �
 >
 > 📖 **[Backend reference →](docs/backend.md)** · 🎨 **[Frontend guide →](frontend/README.md)**
 
+
+<img width="2317" height="1274" alt="Screenshot 2026-06-19 204148" src="https://github.com/user-attachments/assets/8107164a-447e-405b-ad31-ff064dd4afe4" />
+<img width="2317" height="1270" alt="Screenshot 2026-06-19 204548" src="https://github.com/user-attachments/assets/28a98f7c-29eb-491c-a091-ac9adce37c61" />
+
+
 ## What you get
 
 - **Live diagnostics** — CPU (per-core), GPU (NVIDIA via `nvidia-smi`), memory,
